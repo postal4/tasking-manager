@@ -6,15 +6,17 @@ import datetime
 
 from server.models.dtos.user_dto import UserDTO, UserOSMDTO, UserFilterDTO, UserSearchQuery, UserSearchDTO, \
     UserStatsDTO
+from server.models.dtos.message_dto import MessageDTO
+from server.models.postgis.message import Message
 from server.models.postgis.task import TaskHistory
 from server.models.postgis.user import User, UserRole, MappingLevel
 from server.models.postgis.utils import NotFound
 from server.services.users.osm_service import OSMService, OSMServiceError
 from server.services.messaging.smtp_service import SMTPService
 
-
 user_filter_cache = TTLCache(maxsize=1024, ttl=600)
 user_all_cache = TTLCache(maxsize=1024, ttl=600)
+message_cache = TTLCache(maxsize=512, ttl=30)
 
 
 class UserServiceError(Exception):
@@ -270,6 +272,11 @@ class UserService:
         elif intermediate_level < osm_details.changeset_count < advanced_level:
             user.mapping_level = MappingLevel.INTERMEDIATE.value
         else:
+            level_upgrade_message = Message()
+            level_upgrade_message.to_user_id = user.id
+            level_upgrade_message.subject = 'Level upgraded to ' + user.mapping_level
+            level_upgrade_message.message = 'Congratulations! You\'re a ' + user.mapping_level + 'now'
+            level_upgrade_message.save()
             return
 
         user.save()
