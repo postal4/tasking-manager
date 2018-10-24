@@ -272,8 +272,8 @@ class UserService:
         """ Check users mapping level, updates and notifies if they have crossed threshold """
         user = UserService.get_user_by_id(user_id)
         user_level = MappingLevel(user.mapping_level)
-        # if user_level == MappingLevel.ADVANCED:
-        #     return  # User has achieved highest level, so no need to do further checking
+        if user_level == MappingLevel.ADVANCED:
+            return  # User has achieved highest level, so no need to do further checking
 
         intermediate_level = current_app.config['MAPPER_LEVEL_INTERMEDIATE']
         advanced_level = current_app.config['MAPPER_LEVEL_ADVANCED']
