@@ -13,6 +13,7 @@ from server.models.postgis.user import User, UserRole, MappingLevel
 from server.models.postgis.utils import NotFound
 from server.services.users.osm_service import OSMService, OSMServiceError
 from server.services.messaging.smtp_service import SMTPService
+from server.services.messaging.template_service import get_template
 
 user_filter_cache = TTLCache(maxsize=1024, ttl=600)
 user_all_cache = TTLCache(maxsize=1024, ttl=600)
@@ -268,15 +269,17 @@ class UserService:
 
     @staticmethod
     def check_and_update_mapper_level(user_id: int):
-        """ Check users mapping level and update if they have crossed threshold """
+        """ Check users mapping level, updates and notifies if they have crossed threshold """
         user = UserService.get_user_by_id(user_id)
         user_level = MappingLevel(user.mapping_level)
-
-        if user_level == MappingLevel.ADVANCED:
-            return  # User has achieved highest level, so no need to do further checking
+        # if user_level == MappingLevel.ADVANCED:
+        #     return  # User has achieved highest level, so no need to do further checking
 
         intermediate_level = current_app.config['MAPPER_LEVEL_INTERMEDIATE']
         advanced_level = current_app.config['MAPPER_LEVEL_ADVANCED']
+        
+        text_template = get_template('level_upgrade_message_en.txt')
+        text_template = text_template.replace('[USERNAME]', user.username)
 
         try:
             osm_details = OSMService.get_osm_details_for_user(user_id)
@@ -287,14 +290,21 @@ class UserService:
 
         if osm_details.changeset_count > advanced_level:
             user.mapping_level = MappingLevel.ADVANCED.value
+            text_template = text_template.replace('[LEVEL]', 'Advanced')
+            level_upgrade_message = Message()
+            level_upgrade_message.to_user_id = user_id
+            level_upgrade_message.subject = 'Mapper Level Upgrade '
+            level_upgrade_message.message = text_template
+            level_upgrade_message.save()
         elif intermediate_level < osm_details.changeset_count < advanced_level:
             user.mapping_level = MappingLevel.INTERMEDIATE.value
-        else:
+            text_template = text_template.replace('[LEVEL]', 'Intermediate')
             level_upgrade_message = Message()
-            level_upgrade_message.to_user_id = user.id
-            level_upgrade_message.subject = 'Level upgraded to ' + user.mapping_level
-            level_upgrade_message.message = 'Congratulations! You\'re a ' + user.mapping_level + 'now'
+            level_upgrade_message.to_user_id = user_id
+            level_upgrade_message.subject = 'Mapper Level Upgrade '
+            level_upgrade_message.message = text_template
             level_upgrade_message.save()
+        else:
             return
 
         user.save()
