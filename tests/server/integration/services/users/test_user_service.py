@@ -71,15 +71,17 @@ class TestAuthenticationService(unittest.TestCase):
         # Assert
         self.assertEqual(test_user.mapping_level, MappingLevel.INTERMEDIATE.value)
 
+    @patch.object(Message, 'save')
     @patch.object(User, 'save')
     @patch.object(OSMService, 'get_osm_details_for_user')
     @patch.object(UserService, 'get_user_by_id')
-    def test_mapper_level_updates_correctly(self, mock_user, mock_osm, mock_save):
+    def test_mapper_level_updates_correctly(self, mock_user, mock_osm, mock_save, mock_message):
         # Arrange
         test_user = User()
         test_user.username = 'Test User'
         test_user.mapping_level = MappingLevel.BEGINNER.value
         mock_user.return_value = test_user
+        
 
         test_osm = UserOSMDTO()
         test_osm.changeset_count = 350
