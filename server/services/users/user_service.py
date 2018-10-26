@@ -278,9 +278,6 @@ class UserService:
         intermediate_level = current_app.config['MAPPER_LEVEL_INTERMEDIATE']
         advanced_level = current_app.config['MAPPER_LEVEL_ADVANCED']
         
-        text_template = get_template('level_upgrade_message_en.txt')
-        text_template = text_template.replace('[USERNAME]', user.username)
-
         try:
             osm_details = OSMService.get_osm_details_for_user(user_id)
         except OSMServiceError:
@@ -290,6 +287,8 @@ class UserService:
 
         if osm_details.changeset_count > advanced_level:
             user.mapping_level = MappingLevel.ADVANCED.value
+            text_template = get_template('level_upgrade_message_en.txt')
+            text_template = text_template.replace('[USERNAME]', user.username)
             text_template = text_template.replace('[LEVEL]', 'Advanced')
             level_upgrade_message = Message()
             level_upgrade_message.to_user_id = user_id
@@ -298,6 +297,8 @@ class UserService:
             level_upgrade_message.save()
         elif intermediate_level < osm_details.changeset_count < advanced_level:
             user.mapping_level = MappingLevel.INTERMEDIATE.value
+            text_template = get_template('level_upgrade_message_en.txt')
+            text_template = text_template.replace('[USERNAME]', user.username)
             text_template = text_template.replace('[LEVEL]', 'Intermediate')
             level_upgrade_message = Message()
             level_upgrade_message.to_user_id = user_id
