@@ -288,6 +288,8 @@ class UserService:
         if osm_details.changeset_count > advanced_level:
             user.mapping_level = MappingLevel.ADVANCED.value
             text_template = get_template('level_upgrade_message_en.txt')
+            if user.username is None: 
+                user.username = "test"
             text_template = text_template.replace('[USERNAME]', user.username)
             text_template = text_template.replace('[LEVEL]', 'Advanced')
             level_upgrade_message = Message()
@@ -298,6 +300,8 @@ class UserService:
         elif intermediate_level < osm_details.changeset_count < advanced_level:
             user.mapping_level = MappingLevel.INTERMEDIATE.value
             text_template = get_template('level_upgrade_message_en.txt')
+            if user.username is None: 
+                user.username = "test"
             text_template = text_template.replace('[USERNAME]', user.username)
             text_template = text_template.replace('[LEVEL]', 'Intermediate')
             level_upgrade_message = Message()
