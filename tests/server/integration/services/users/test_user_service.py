@@ -77,7 +77,7 @@ class TestAuthenticationService(unittest.TestCase):
     def test_mapper_level_updates_correctly(self, mock_user, mock_osm, mock_save):
         # Arrange
         test_user = User()
-        test_user = 'Test User'
+        test_user.username = 'Test User'
         test_user.mapping_level = MappingLevel.BEGINNER.value
         mock_user.return_value = test_user
 
