@@ -6,6 +6,7 @@ from unittest.mock import patch
 from server import create_app
 from server.services.users.user_service import UserService, MappingLevel, User, OSMService, UserOSMDTO
 from tests.server.helpers.test_helpers import create_canned_project
+from server.models.postgis.message import Message
 
 
 class TestAuthenticationService(unittest.TestCase):
