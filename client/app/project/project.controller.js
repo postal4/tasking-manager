@@ -316,7 +316,7 @@
             // Select interaction
             vm.selectInteraction = new ol.interaction.Select({
                 style: styleService.getSelectedTaskStyle,
-                layers: [vm.taskVectorLayer]
+                layers: [vm.taskVectorLayer, vm.taskAnnotationLayer]
             });
             vm.map.addInteraction(vm.selectInteraction);
             vm.selectInteraction.on('select', function (event) {
@@ -511,6 +511,7 @@
                 //project returned successfully
                 vm.projectData = data;
                 addProjectTasksToMap(vm.projectData.tasks, false);
+                loadAnnotations(id);
                 //TODO: move the selected task refresh to a separate function so it can be called separately
                 if (vm.selectedTaskData) {
                     var selectedFeature = taskService.getTaskFeatureById(vm.taskVectorLayer.getSource().getFeatures(), vm.selectedTaskData.taskId);
@@ -821,6 +822,7 @@
 
         vm.addAnnotationsToMap = function addAnnotationsToMap() {
             var source;
+            vm.clearCurrentSelection();
             if (!vm.taskAnnotationLayer) {
                 // create and add the layer
 
@@ -838,22 +840,30 @@
                     style: styleService.getTaskAnnotationStyle,
                     opacity: 0.7
                 });
-                vm.map.removeLayer(vm.taskVectorLayer);
-                vm.map.addLayer(vm.taskAnnotationLayer);
                 var taskFeatures = geospatialService.getFeaturesFromGeoJSON(vm.projectData.tasks);
                 source.addFeatures(taskFeatures);
+                enableLayer();
             } else if (vm.taskAnnotationLayer.getVisible()) {
 
                 // disable the layer
                 vm.map.removeLayer(vm.taskAnnotationLayer);
                 vm.taskAnnotationLayer.setVisible(false);
                 vm.map.addLayer(vm.taskVectorLayer);
+                document.getElementById('legend-control-tm').style.visibility = 'visible';
+                document.getElementById('legend-control-ml').style.visibility = 'hidden';
             } else {
 
                 // add the layer
                 vm.taskAnnotationLayer.setVisible(true);
+                enableLayer();
+            }
+
+            function enableLayer() {
                 vm.map.addLayer(vm.taskAnnotationLayer);
                 vm.map.removeLayer(vm.taskVectorLayer);
+                document.getElementById('legend-control-tm').style.visibility = 'hidden';
+                document.getElementById('legend-control-ml').style.visibility = 'visible';
+                addInteractions();
             }
         };
 
