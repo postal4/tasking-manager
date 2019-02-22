@@ -47,6 +47,7 @@ class StopMappingTaskDTO(Model):
 
 class TaskHistoryDTO(Model):
     """ Describes an individual action that was performed on a mapping task"""
+    task_id = StringType(serialized_name='taskId')
     action = StringType()
     action_text = StringType(serialized_name='actionText')
     action_date = DateTimeType(serialized_name='actionDate')
